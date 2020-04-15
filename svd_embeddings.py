@@ -45,7 +45,7 @@ def main():
 	print(matrix.get_shape())
 
 	#Singular value decomposition
-	U, S, VT = svds(matrix, return_singular_vectors="vh")
+	U, S, VT = svds(matrix, k=100, return_singular_vectors="vh")
 
 	#sort in descending
 	S = S[::-1]
@@ -57,7 +57,7 @@ def main():
 	power = 0.0
 	num_retain = 0
 	num_zero = 0
-	print(S)
+	np.savetxt(args.output_path + "_s_values.csv", S)
 	for i, sing_val in enumerate(S):
 		if sing_val == 0:
 			num_zero += 1
