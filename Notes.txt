@@ -1,0 +1,10 @@
+Total 162541 users:
+	train (90%) = 146541 users
+	test (10%) = 16000 users
+
+Total 209171 movies
+
+6 Singular Values Retained
+
+train_embeddings.csv format:
+	user_id, embedding (6 values)
