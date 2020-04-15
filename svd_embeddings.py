@@ -47,20 +47,31 @@ def main():
 	#Singular value decomposition
 	U, S, VT = svds(matrix, return_singular_vectors="vh")
 
+	#sort in descending
+	S = S[::-1]
+
 	#find number of signular values to retain for 90% > power
 	total_power = np.sum(S**2)
 	num_retain = 0
 	#accumulate power until reach over 90%
-	power = 0
+	power = 0.0
+	num_retain = 0
+	num_zero = 0
+	print(S)
 	for i, sing_val in enumerate(S):
+		if sing_val == 0:
+			num_zero += 1
+			continue
 		power += sing_val**2
+		num_retain += 1
 		if power / total_power >= 0.9:
-			num_retain = i+1
+			print("Power % retained: {}".format(power / total_power))
 			break
 	
 	print("Num_retain: {}".format(num_retain))
 	
-	VT_90 = VT[:num_retain]
+	#extract non-zero singular value rows, reverse row order, retain fewer rows
+	VT_90 = VT[:len(VT)-num_zero][::-1][:num_retain]
 
 	#output 90% power V^T matrix
 	np.savetxt(args.output_path + "_VT.csv", VT_90, delimiter=',')
@@ -70,10 +81,10 @@ def main():
 	#calculate embeddings
 	embeddings = matrix.dot(V_90)
 	usr_ind = np.arange(len(embeddings)).astype(int) + 1
-    #save to csv: user_id (back to 1-indexing), embedding
+	#save to csv: user_id (back to 1-indexing), embedding
 	np.savetxt(args.output_path + "_embeddings.csv",
-            np.insert(embeddings, 0, usr_ind, axis=1),
-            fmt = ','.join(['%i'] + ['%.18e']*num_retain)) 
+			np.insert(embeddings, 0, usr_ind, axis=1),
+			fmt = ','.join(['%i'] + ['%.18e']*num_retain)) 
 
 if __name__ == "__main__":
 	main()

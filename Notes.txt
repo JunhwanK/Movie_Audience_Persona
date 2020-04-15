@@ -4,7 +4,11 @@ Total 162541 users:
 
 Total 209171 movies
 
-6 Singular Values Retained
+
+Singular Values: [7632.2879971  3484.86736699 2606.32411918 2379.76051876 2084.92664251
+ 1903.12411287]
+4 Singular Values Retained
+Power % retained: 0.9122582757935461
 
 train_embeddings.csv format:
-	user_id, embedding (6 values)
+	user_id, embedding (4 values)
