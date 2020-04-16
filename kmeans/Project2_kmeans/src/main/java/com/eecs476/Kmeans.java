@@ -347,9 +347,7 @@ public class Kmeans {
                     int idx = (this_p.get(0)).intValue();
                     all_idx_distance += Integer.toString(idx) + "," + Float.toString(distance) + "\n";
                 }
-                // remove last newline in string of all idx and distances
-                //assert(false);
-                //String all_idx_distance_final = all_idx_distance.substring(0, all_idx_distance.length() - 1);
+                all_idx_distance += "\n";
                 context.write(new Text(all_idx_distance), null);
 
                 /*for (Text trythis : values) {
