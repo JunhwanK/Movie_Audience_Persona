@@ -6,24 +6,26 @@ import math
 import numpy as np
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
+import csv
 
 
 def proc():
-    filename = "pure_embeddings.csv"
+    filename = "train_embeddings.csv"
     f = open(filename, 'r')
     contents = f.readlines()
     f.close()
     print(len(contents))
     roundNum = 1
-    centroids_filename = "embeddings_centroids.csv"
-    cf = open(centroids_filename, 'w')
-    centroids = []
-    for i in range(0, len(contents), 2950):
-         cf.write(contents[i])
-         centroids.append(contents[i])
-    print(centroids)
-    print(len(centroids))
-    return(centroids)
+    new_centroids_filename = "pure_embeddings.csv"
+    cf = open(new_centroids_filename, 'w')
+    for line in contents:
+        split_x = line.split(',')
+        float_x = [str(elt) for elt in split_x]
+        y = float_x[1:]
+        newline = ','.join(y)
+        #print(newline)
+        cf.write(newline)
+
 
 
 def main():

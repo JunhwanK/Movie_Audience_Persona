@@ -12,3 +12,24 @@ Power % retained: 0.9122582757935461
 
 train_embeddings.csv format:
 	user_id, embedding (4 values)
+
+pure_embeddings.csv contains 146541 users without their indices
+	Format: 52 coordinates
+	Method of obtaining: Run remove_embeddings.csv on train_embeddings.csv
+
+embeddings_centroids.csv contains 50 random initial clusters.
+	Format: 52 coordinates
+	Method of obtaining: Run random_centroids.py on pure_embeddings.csv
+
+clusters.txt contains 50 final clusters chosen after 25 iterations.
+	Format: 52 coordinates
+	Method of obtaining: Run Kmeans_old.java with data = pure_embeddings.csv, centroids = embeddings_centroids.csv. 
+	Note on code: k-means_old assumes NO INDICES since data is pure_embeddings.csv
+
+point_distance_data.txt contains all points with their distances to nearest centroid in clusters.txt
+	Format: user_id, distance_to_nearest_centroid (2 values)
+	
+
+
+
+
