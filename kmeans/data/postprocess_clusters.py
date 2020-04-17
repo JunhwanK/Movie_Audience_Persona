@@ -15,7 +15,7 @@ def dist(a, b):
         sum += (a[i] - b[i]) * (a[i] - b[i])
     return math.sqrt(sum)
 
-def proc():
+def get_mean_sd():
     # Data format: point_idx,distance from its nearest centroid.
     # Point clusters are separated by a newline
     filename = "point_distance_data_clusters.txt"
@@ -55,11 +55,29 @@ def proc():
         cluster_stats.append((mean, sd))
         # Write to file
         wf.write(str(mean) + ',' + str(sd) + '\n')
+    return clusters, cluster_stats
 
-
+def zscore(clusters,mean_sd):
+    count = 0
+    for i in range(len(clusters)):
+        one_cluster = clusters[i]
+        cluster_mean = mean_sd[i][0]
+        cluster_sd = mean_sd[i][1]
+        #print(cluster_mean)
+        #print(cluster_sd)
+        for one_point in one_cluster:
+            idx = one_point[0]
+            distance = one_point[1]
+            zscore = (distance - cluster_mean) / cluster_sd
+            if zscore >= 3.0:
+                print(str(idx) + ',' + str(zscore))
+                count += 1
+    print(count)
 
 def main():
-    proc()
+    clusters, mean_sd = get_mean_sd()
+    zscore(clusters,mean_sd)
+
 
 if __name__== "__main__":
     main()
