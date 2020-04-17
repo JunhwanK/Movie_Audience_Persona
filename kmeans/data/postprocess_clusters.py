@@ -57,8 +57,10 @@ def get_mean_sd():
         wf.write(str(mean) + ',' + str(sd) + '\n')
     return clusters, cluster_stats
 
+# Returns list of outlier point indices to remove
 def zscore(clusters,mean_sd):
     count = 0
+    points_to_remove = []
     for i in range(len(clusters)):
         one_cluster = clusters[i]
         cluster_mean = mean_sd[i][0]
@@ -66,17 +68,39 @@ def zscore(clusters,mean_sd):
         #print(cluster_mean)
         #print(cluster_sd)
         for one_point in one_cluster:
-            idx = one_point[0]
+            idx = int(one_point[0])
             distance = one_point[1]
             zscore = (distance - cluster_mean) / cluster_sd
             if zscore >= 3.0:
                 print(str(idx) + ',' + str(zscore))
+                points_to_remove.append(idx)
                 count += 1
     print(count)
+    return points_to_remove
+
+def trim_train_embeddings(outliers):
+    filename = "train_embeddings.csv"
+    f = open(filename, 'r')
+    contents = f.readlines()
+    f.close()
+    trimfile = "trim_embeddings.csv"
+    tf = open(trimfile, 'w')
+    print(len(contents)) # check before and after
+    count = 0
+    for line in contents:
+        split_x = line.split(',')
+        idx = int(split_x[0])
+        if idx in outliers:
+            continue # do not write to trimfile if it's an outlier
+        tf.write(line)
+        count += 1
+    print(count)
+
 
 def main():
     clusters, mean_sd = get_mean_sd()
-    zscore(clusters,mean_sd)
+    outliers = zscore(clusters,mean_sd)
+    trim_train_embeddings(outliers)
 
 
 if __name__== "__main__":
