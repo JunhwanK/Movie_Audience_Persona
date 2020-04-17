@@ -92,7 +92,10 @@ def trim_train_embeddings(outliers):
         idx = int(split_x[0])
         if idx in outliers:
             continue # do not write to trimfile if it's an outlier
-        tf.write(line)
+        convert_x = [str(elt) for elt in split_x]
+        y = convert_x[1:]
+        newline = ','.join(y)
+        tf.write(newline)
         count += 1
     print(count)
 

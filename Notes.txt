@@ -29,10 +29,21 @@ clusters.txt contains 50 final clusters chosen after 25 iterations.
 point_distance_data_clusters.txt contains all points with their distances to nearest centroid in clusters.txt
 	Format: user_id, distance_to_nearest_centroid (2 values)
 	Note: Clusters are separated by 2 newlines
+	Method of obtaining: Run Kmeans.java with data = train_embeddings.csv, centroids = embeddings_centroids.csv. Assumes indices are present for identifying points and printing their distances
 
 zscore.txt format:
 	user_id, zscore >= 3
 	Method of obtaining: Run postprocessing.py on point_distance_data_clusters
+	1522 outliers
+
+trim_embeddings.csv:
+	Same format as pure_embeddings.csv but without outliers
+	145019 non-outlier entries
+
+final_centroids.txt:
+	Same format as centroids, 50 clustered centroids with outliers removed
+	Method of obtaining: Run Kmeans_old.java with data = trim_embeddings.csv, centroids = embeddings_centroids.csv. 
+
 	
 
 
