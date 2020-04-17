@@ -26,8 +26,13 @@ clusters.txt contains 50 final clusters chosen after 25 iterations.
 	Method of obtaining: Run Kmeans_old.java with data = pure_embeddings.csv, centroids = embeddings_centroids.csv. 
 	Note on code: k-means_old assumes NO INDICES since data is pure_embeddings.csv
 
-point_distance_data.txt contains all points with their distances to nearest centroid in clusters.txt
+point_distance_data_clusters.txt contains all points with their distances to nearest centroid in clusters.txt
 	Format: user_id, distance_to_nearest_centroid (2 values)
+	Note: Clusters are separated by 2 newlines
+
+zscore.txt format:
+	user_id, zscore >= 3
+	Method of obtaining: Run postprocessing.py on point_distance_data_clusters
 	
 
 
