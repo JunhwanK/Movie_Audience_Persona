@@ -5,13 +5,28 @@ Total 162541 users:
 Total 209171 movies
 
 
-Singular Values: [7632.2879971  3484.86736699 2606.32411918 2379.76051876 2084.92664251
- 1903.12411287]
-4 Singular Values Retained
-Power % retained: 0.9122582757935461
+
+ratings_train.csv, ratings_test.csv:
+	train (90%) = 146541 users
+	test (10%) = 16000 users
+	Method of obtaining: Run preprocess.py on ratings.csv
+
+train_s_values.csv:
+	contrains first 100 singular values of ratings_train.csv
+	Method of obtaining: Run svd_embedding.py with --matrix_data as ratings_train.csv
+	and --output_path as train
+
+train_VT.csv:
+	contains 52 rows of V^T matrix that retains 90% of 100 largest singular vectors
+	Method of obtaining: Run svd_embedding.py with --matrix_data as ratings_train.csv
+	and --output_path as train
 
 train_embeddings.csv format:
-	user_id, embedding (4 values)
+	user_id, embedding (52 values)
+	Method of obtaining: Run svd_embedding.py with --matrix_data as ratings_train.csv
+	and --output_path as train
+	
+=================================
 
 pure_embeddings.csv contains 146541 users without their indices
 	Format: 52 coordinates
@@ -44,8 +59,20 @@ final_centroids.txt:
 	Same format as centroids, 50 clustered centroids with outliers removed
 	Method of obtaining: Run Kmeans_old.java with data = trim_embeddings.csv, centroids = embeddings_centroids.csv. 
 
-	
+===================================
 
+persona_ratings/persona_#i.csv:
+	contains expected movie ratings of the i^th persona
+	contains negative values
+	Method of obtaining: Run svd_personas.py with VT_matrix = train_VT.csv, centroids = final_centroids.txt, and output_path = persona_ratings/persona
 
+persona_movie_selections/persona_#i_movies.csv:
+	Top selection of movies to recommend to the user matching the i^th persona
+	CURRENTLY, contains movie of scaled ratings > 3.99
 
+	movie ratings were scaled by (ratings + min(ratings)) / max(ratings) * 5
+		in words, 1. increment to make all non-negative, 2. scale to [0,5] range
+
+	Method of obtaining: Run "analyze_all_personas.sh 50" which runs analyze_pesona.py
+		NOTE: the command inside the shell script (basically arguments for the analyze_persona.py) can be adjusted to use different rating threshold or to return top # of movies to recommend
 
