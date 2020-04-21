@@ -2,7 +2,8 @@ import argparse
 import csv
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.sparse.linalg import svds
+from scipy.sparse.linalg import svds, aslinearoperator
+from scipy.linalg.interpolative import estimate_rank
 #https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html
 #https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.svds.html
 
@@ -43,6 +44,10 @@ def main():
 	matrix = csr_matrix((data, (row_ind,col_ind)))
 	
 	print(matrix.get_shape())
+
+	#est_rank = estimate_rank(aslinearoperator(matrix), 0.005)
+	#print(est_rank)
+	#return
 
 	#Singular value decomposition
 	U, S, VT = svds(matrix, k=100, return_singular_vectors="vh")

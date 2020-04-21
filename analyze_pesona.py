@@ -32,10 +32,9 @@ def main():
 	#read in persona's expected movie ratings
 	persona = np.genfromtxt(args.persona, delimiter=',')
 	
-	#shift ratings to make all values non-negative
-	persona += np.min(persona)
-	#normalized and scale expected ratings
-	persona = persona / np.max(persona) * 5
+	#scale expected ratings to [0,5] range
+	persona -= np.min(persona)
+	persona =  persona / np.max(persona) * 5
 
 	#output index of recommended movies
 	with open(args.output_path, 'w') as out_file:
