@@ -42,14 +42,14 @@ def main():
 			for i, rating in enumerate(persona):
 				if rating > args.threshold:
 					movie_name = movie_names[i+1] #1-indexing for movie id
-					out_file.write("{},{},{}\n".format(i+1, movie_name, rating)) #id, name, rating
+					out_file.write('{},"{}",{}\n'.format(i+1, movie_name, rating)) #id, name, rating
 		elif args.num is not None:
 			ranking = np.argsort(persona)
 			for i in range(args.num):
 				ind = ranking[-1-i]
 				movie_name = movie_names[ind+1] #1-indexing for movie id
 				rating = persona[ind]
-				out_file.write("{},{},{}\n".format(i+1, movie_name, rating)) #id, name, rating
+				out_file.write('{},"{}",{}\n'.format(i+1, movie_name, rating)) #id, name, rating
 
 if __name__ == "__main__":
 	main()
