@@ -23,7 +23,7 @@ import java.text.*;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.lang.*;
-
+import java.util.stream.Collectors;
 
 
 public class Kmeans {
@@ -113,7 +113,7 @@ public class Kmeans {
         private static float cos_dist(ArrayList<Float> cent, ArrayList<Float> point, int cent_idx, int skip) {
             assert(cent.size() == point.size());
             float dot_prod = 0;
-            for (int i = skip; i < p1.size(); ++i) {
+            for (int i = skip; i < point.size(); ++i) {
                 dot_prod += cent.get(i) * point.get(i);
             }
             return dot_prod / cent_magnitudes.get(cent_idx) / magnitude(point, skip);
@@ -124,7 +124,7 @@ public class Kmeans {
             for (int i = skip; i < coords.size(); ++i) {
                 sumsq += coords.get(i) * coords.get(i);
             }
-            return Math.sqrt(sumsq);
+            return (float) Math.sqrt(sumsq);
         }
 
         // In setup, read centroid file or previous reducer's output from file directly
@@ -142,7 +142,7 @@ public class Kmeans {
                 filename = cacheFile[0].toString();
             }
 
-
+            Configuration conf = context.getConfiguration();
             int k = conf.getInt("num_cluster", 1);
             skip = conf.getInt("skip", 0);
             int cent_count = 0;
@@ -164,7 +164,7 @@ public class Kmeans {
                     break;
                 }
             }
-            dimen = centroids[0].size();
+            dimen = centroids.get(0).size();
             n_centroids = centroids.size();
             reader.close();
 
@@ -192,7 +192,7 @@ public class Kmeans {
                 float dist = cos_dist(centroids.get(i), dataPoint, i, skip);
                 if (Float.compare(dist, nearestDistance) == 0) {
                     //System.out.println("centroids with same distance to this point found");
-                    if (magnitude(centroid, skip) < magnitude(centroids.get(closest_cent), skip)) {
+                    if (magnitude(centroids.get(i), skip) < magnitude(centroids.get(closest_cent), skip)) {
                         nearestDistance = dist;
                         closest_cent = i;
                     }
@@ -219,6 +219,9 @@ public class Kmeans {
     // Writes new centroid which is a list of coords to global centroids list
     public static class KmeansReducer1 extends Reducer<Text, Text, Text, Text> {
 
+        static int skip;
+        static boolean is_last;
+
         private static float cos_dist(ArrayList<Float> p1, ArrayList<Float> p2, int skip) {
             assert(p1.size() == p2.size());
             float dot_prod = 0;
@@ -233,31 +236,37 @@ public class Kmeans {
             for (int i = skip; i < coords.size(); ++i) {
                 sumsq += coords.get(i) * coords.get(i);
             }
-            return Math.sqrt(sumsq);
+            return (float) Math.sqrt(sumsq);
+        }
+
+        public void setup(Context context) {
+            Configuration conf = context.getConfiguration();
+            int skip = conf.getInt("skip", 0);
+            boolean is_last = conf.getBoolean("last", false);
         }
 
         // input will be <currentCentroid, iterable of pts(lists of coords) with nearest centroid = currentCentroid>
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            int skip = conf.getInt("skip", 0);
-            boolean is_last = conf.getBool("last", false);
             ArrayList<ArrayList<Float>> points = new ArrayList<ArrayList<Float>>();
 
             Iterator<Text> itr = values.iterator();
             //create accumulator
-            List<Float> centroid = new ArrayList<Float>();
+            ArrayList<Float> centroid = new ArrayList<Float>();
             //read first point
             Text val = itr.next();
             StringTokenizer str_itr = new StringTokenizer(val.toString(), ",");
             while (str_itr.hasMoreTokens()) {
-                float elem = Float.parse(str_itr.nextToken());
+                float elem = Float.parseFloat(str_itr.nextToken());
                 centroid.add(elem);
             }
 
             if (is_last) {
-                points.add(centroid.clone()); //shallow copy, but doesn't matter
+                ArrayList<Float> first_point = (ArrayList<Float>) centroid.clone();
+                points.add(first_point); //shallow copy, but doesn't matter
             }
-
-            float cent_id = Float.parse(StringTokenizer(key.toString(),",").nextToken());
+            String cent_str = key.toString();
+            int first_comma = cent_str.indexOf(",");
+            float cent_id = Float.parseFloat(cent_str.substring(0,first_comma));
             centroid.set(0, cent_id);
 
             int count = 1;
@@ -275,7 +284,7 @@ public class Kmeans {
                         ++i;
                         continue;
                     }
-                    float elem = Float.parse(str_itr.nextToken());
+                    float elem = Float.parseFloat(str_itr.nextToken());
                     centroid.set(i, centroid.get(i)+elem);
                     if (is_last) {
                         point.add(elem);
@@ -299,17 +308,17 @@ public class Kmeans {
                 for (ArrayList<Float> point: points) {
                     float distance = cos_dist(centroid, point, skip);
                     String point_str = point.stream().map(i -> i.toString())
-                                            .collect(Collectors.joining(","))
-                    output += point_str + "," + Float.toString(distance) + "\n";
+                            .collect(Collectors.joining(","));
+                    output += "," + point_str + "," + Float.toString(distance) + "\n";
                 }
                 //cent_id,point_id,pt_embedding,distance
                 context.write(new Text(output), null);
 
             } else {
                 // output new centroid to be used as cache file for next round.
-                String cent_str = centroid.stream().map(i -> i.toString())
-                                            .collect(Collectors.joining(","))
-                context.write(new Text(cent_str), null);
+                String updated_cent_str = centroid.stream().map(i -> i.toString())
+                        .collect(Collectors.joining(","));
+                context.write(new Text(updated_cent_str), null);
             }
         }
     }
