@@ -68,7 +68,7 @@ public class Kmeans {
             if (i == n) {
                 conf.setBoolean("last", true);
             }
-            //System.out.println("ROUND NUMBER: " + String.valueOf(i));
+            System.out.println("k= " + k + " ROUND NUMBER: " + String.valueOf(i));
             String jobname = "j" + String.valueOf(i);
             Job j1 = Job.getInstance(conf, jobname);
             if (i == 1) {
@@ -134,13 +134,14 @@ public class Kmeans {
             URI[] cacheFile = context.getCacheFiles();
 
             // Get cached filename
-            String filename = null;
+            String filename = cacheFile[0].toString();
+            /*String filename = null;
             int lastindex = cacheFile[0].toString().lastIndexOf('/');
             if (lastindex != -1) {
                 filename = cacheFile[0].toString().substring(lastindex + 1, cacheFile[0].toString().length());
             } else {
                 filename = cacheFile[0].toString();
-            }
+            }*/
 
             Configuration conf = context.getConfiguration();
             int k = conf.getInt("num_cluster", 1);
@@ -151,12 +152,11 @@ public class Kmeans {
             BufferedReader reader = new BufferedReader(new FileReader(filename));
             String line = null;
             while ((line = reader.readLine()) != null) {
-                // read each centroid in, convert to list<string> and save
-                String[] centroidArr = line.split(",", 0);
                 ArrayList<Float> centroidList = new ArrayList<Float>();
-                for (String coord : centroidArr) {
-                    // convert to float and append to list
-                    centroidList.add(Float.parseFloat(coord));
+                StringTokenizer itr = new StringTokenizer(line, ",");
+                while (itr.hasMoreTokens()) {
+                    float elem = Float.parseFloat(itr.nextToken());
+                    centroidList.add(elem);
                 }
                 // add individual centroidlist to list of centroids
                 centroids.add(centroidList);
@@ -181,7 +181,7 @@ public class Kmeans {
             //read datapoint
             StringTokenizer itr = new StringTokenizer(value.toString(), ",");
             while (itr.hasMoreTokens()) {
-                float elem = new Float(itr.nextToken());
+                float elem = Float.parseFloat(itr.nextToken());
                 dataPoint.add(elem);           
             }
 
@@ -241,8 +241,9 @@ public class Kmeans {
 
         public void setup(Context context) {
             Configuration conf = context.getConfiguration();
-            int skip = conf.getInt("skip", 0);
-            boolean is_last = conf.getBoolean("last", false);
+            skip = conf.getInt("skip", 0);
+            is_last = conf.getBoolean("last", false);
+            //System.out.println("is_last"+is_last+"\n");
         }
 
         // input will be <currentCentroid, iterable of pts(lists of coords) with nearest centroid = currentCentroid>
@@ -264,6 +265,7 @@ public class Kmeans {
                 ArrayList<Float> first_point = (ArrayList<Float>) centroid.clone();
                 points.add(first_point); //shallow copy, but doesn't matter
             }
+            //set the correct centroid id
             String cent_str = key.toString();
             int first_comma = cent_str.indexOf(",");
             float cent_id = Float.parseFloat(cent_str.substring(0,first_comma));
@@ -272,22 +274,18 @@ public class Kmeans {
             int count = 1;
             //read rest of the values
             while (itr.hasNext()) {
-                count += 1;
-
                 val = itr.next();
+                ++count;
                 str_itr = new StringTokenizer(val.toString(), ",");
                 int i = 0;
                 ArrayList<Float> point = new ArrayList<Float>();
                 while (str_itr.hasMoreTokens()) {
-                    if (i == 0) {
-                        str_itr.nextToken();
-                        ++i;
-                        continue;
-                    }
                     float elem = Float.parseFloat(str_itr.nextToken());
-                    centroid.set(i, centroid.get(i)+elem);
                     if (is_last) {
                         point.add(elem);
+                    }
+                    if (i >= skip) {
+                        centroid.set(i, centroid.get(i)+elem);
                     }
                     ++i;
                 }
@@ -304,16 +302,17 @@ public class Kmeans {
 
             // Output list of (point index, distance to its centroid)
             if (is_last) {
-                String output = Float.toString(centroid.get(0)) + ",";
+                //System.out.println("num points=" + points.size());
+                count = 0;//DEBUG
                 for (ArrayList<Float> point: points) {
+                    String output = Float.toString(centroid.get(0)) + ",";
                     float distance = cos_dist(centroid, point, skip);
                     String point_str = point.stream().map(i -> i.toString())
                             .collect(Collectors.joining(","));
-                    output += "," + point_str + "," + Float.toString(distance) + "\n";
+                    output += point_str + "," + Float.toString(distance);
+                    //cent_id,point_id,pt_embedding,distance
+                    context.write(new Text(output), null);
                 }
-                //cent_id,point_id,pt_embedding,distance
-                context.write(new Text(output), null);
-
             } else {
                 // output new centroid to be used as cache file for next round.
                 String updated_cent_str = centroid.stream().map(i -> i.toString())
