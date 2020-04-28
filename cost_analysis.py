@@ -11,7 +11,7 @@ def main():
 		print("input_format must include one {} for formatting")
 		return
 
-	ks = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64]
+	ks = [2, 4, 8, 12, 16, 24, 28, 32, 36, 40, 44, 48, 52, 56, 64]
 	costs = []
 
 	for i in ks:
