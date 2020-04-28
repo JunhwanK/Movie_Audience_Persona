@@ -16,10 +16,10 @@ def main():
 	costs = []
 	actual_ks = []
 
-	df_header = ["cent_id", "point_id"]
+	df_headers = ["cent_id", "point_id"]
 	for i in range(52):
-		df_header.append("em{}".format(i))
-	dt_headers.append("dist")
+		df_headers.append("em{}".format(i))
+	df_headers.append("dist")
 
 	for i in ks:
 		cost = 0
@@ -29,12 +29,12 @@ def main():
 				last_comma_ind = line.rfind(",")
 				cost += float(line[last_comma_ind+1:])
 			costs.append(cost)
-		df = pandas.read_csv(file_name, names=df_header)
+		df = pandas.read_csv(file_name, names=df_headers, usecols=['cent_id'])
 		actual_ks.append(len(df["cent_id"].unique()))
 
 	with open("costs.csv", 'w') as out_file:
-		for k,c in zip(ks, costs):
-			out_file.write("{},{}\n".format(k,c))
+		for i,k,c in zip(ks, actual_ks, costs):
+			out_file.write("{},{},{}\n".format(i,k,c))
 
 if __name__ == "__main__":
 	main()
