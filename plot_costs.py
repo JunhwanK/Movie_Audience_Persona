@@ -11,14 +11,20 @@ def main():
 	#parse command line arguments
 	args = parser.parse_args()
 
-	xs = []
-	ys = []
+	lookup = {} #k --> (cost, id)
 	with open(args.in_path) as in_file:
 		csv_reader = csv.reader(in_file, delimiter=',')
 		for row in csv_reader:
-			xs.append(int(row[0])) #k num
-			ys.append(float(row[1])) #cost
+			i = int(row[0]) #id
+			num_cent = int(row[1]) #num centroids
+			cost = float(row[2])
+			if num_cent in lookup and lookup[num_cent] > cost:
+				lookup[num_cent] = cost
+			else:
+				lookup[num_cent] = cost
 
+	items = sorted(list(lookup.items()))
+	xs, ys = zip(*items)
 	plt.plot(xs, ys)
 	plt.title("Cost Over Different Number of Cluster")
 	plt.xlabel("Num Cluster")
